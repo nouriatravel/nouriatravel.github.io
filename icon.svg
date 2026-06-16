@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#1A1A2E"/>
+  <rect x="24" y="60" width="144" height="88" rx="14" fill="#C9A227"/>
+  <rect x="24" y="60" width="144" height="34" rx="14" fill="#F5D77F"/>
+  <rect x="24" y="80" width="144" height="14" fill="#F5D77F"/>
+  <rect x="36" y="108" width="30" height="8" rx="4" fill="#1A1A2E" opacity="0.6"/>
+  <rect x="36" y="122" width="50" height="6" rx="3" fill="#1A1A2E" opacity="0.4"/>
+  <circle cx="148" cy="120" r="14" fill="#1A1A2E" opacity="0.25"/>
+  <circle cx="134" cy="120" r="14" fill="#1A1A2E" opacity="0.4"/>
+  <text x="96" y="52" font-family="Arial" font-size="22" font-weight="bold" fill="#C9A227" text-anchor="middle">💳</text>
+</svg>

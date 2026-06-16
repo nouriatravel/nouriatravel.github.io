@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="بطاقة ولاء">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <title>بطاقة الولاء</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --gold: #C9A227;
+      --gold-light: #F5D77F;
+      --dark: #0A0A0A;
+      --card-bg: #1C1C1E;
+      --pass-h: #1A1A2E;
+    }
+
+    html, body {
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Status Bar Area ── */
+    .safe-top { height: env(safe-area-inset-top, 44px); background: #000; }
+
+    /* ── Nav Bar ── */
+    .navbar {
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    }
+    .navbar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .navbar-btn {
+      background: none; border: none; color: #C9A227;
+      font-size: 15px; font-weight: 500; cursor: pointer;
+      padding: 6px 0; min-width: 44px;
+    }
+    .navbar-btn.right { text-align: left; }
+    .navbar-btn.left { text-align: right; }
+
+    /* ── Search ── */
+    .search-wrap {
+      padding: 10px 16px;
+      background: #000;
+    }
+    .search-inner {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+    }
+    .search-icon { font-size: 14px; opacity: 0.5; }
+    .search-inner input {
+      flex: 1; background: none; border: none; outline: none;
+      color: #fff; font-size: 15px; padding: 10px 0;
+      direction: rtl;
+    }
+    .search-inner input::placeholder { color: rgba(255,255,255,0.35); }
+
+    /* ── Segment ── */
+    .segment-wrap {
+      padding: 0 16px 12px;
+      background: #000;
+    }
+    .segment {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: flex;
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg-btn {
+      flex: 1; padding: 7px 4px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 500; background: none; color: rgba(255,255,255,0.5);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .seg-btn.active {
+      background: #fff;
+      color: #000;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* ── Cards List ── */
+    .cards-list {
+      padding: 8px 16px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ══════════════════════════════════════
+       WALLET PASS CARD
+    ══════════════════════════════════════ */
+    .pass-card {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .pass-card:active { transform: scale(0.97); }
+    .pass-card.ready { box-shadow: 0 0 0 2px #C9A227, 0 20px 60px rgba(201,162,39,0.3); }
+
+    /* Header strip */
+    .pass-header {
+      background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+      padding: 18px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .pass-header::before {
+      content: '';
+      position: absolute;
+      top: -30px; left: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(201,162,39,0.15) 0%, transparent 70%);
+    }
+    .pass-logo {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .pass-logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #C9A227, #F5D77F);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .pass-logo-text { }
+    .pass-logo-text .brand { font-size: 13px; font-weight: 700; color: #F5D77F; letter-spacing: 0.5px; }
+    .pass-logo-text .sub { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 1px; }
+    .pass-points {
+      text-align: left;
+    }
+    .pass-points .num { font-size: 28px; font-weight: 800; color: #F5D77F; line-height: 1; }
+    .pass-points .lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; letter-spacing: 0.5px; }
+
+    /* Customer section */
+    .pass-customer {
+      background: linear-gradient(180deg, #16213E 0%, #1a1a2e 100%);
+      padding: 10px 20px 14px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+    }
+    .pass-customer .label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; }
+    .pass-customer .name { font-size: 17px; font-weight: 700; margin-top: 2px; }
+    .pass-customer .phone { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 1px; direction: ltr; text-align: right; }
+
+    /* Stamps area */
+    .pass-stamps {
+      background: #1C1C1E;
+      padding: 16px 20px;
+    }
+    .stamps-label {
+      font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .stamps-label .progress-lbl { color: #C9A227; font-size: 12px; }
+    .stamps-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stamp-dot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.04);
+    }
+    .stamp-dot.filled {
+      background: linear-gradient(135deg, #C9A227, #F5D77F);
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(201,162,39,0.4);
+    }
+    .stamp-dot.filled::after { content: '✓'; color: #000; font-weight: 800; font-size: 13px; }
+    .stamp-dot.free-dot {
+      background: linear-gradient(135deg, #30D158, #32AE60);
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(48,209,88,0.4);
+    }
+    .stamp-dot.free-dot::after { content: '★'; color: #fff; font-weight: 800; font-size: 14px; }
+    /* Progress bar */
+    .pass-progress {
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .pass-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #C9A227, #F5D77F);
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .pass-progress-fill.complete {
+      background: linear-gradient(90deg, #30D158, #32AE60);
+    }
+
+    /* Footer / barcode area */
+    .pass-footer {
+      background: #1C1C1E;
+      border-top: 0.5px solid rgba(255,255,255,0.08);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pass-free-badge {
+      background: linear-gradient(135deg, #30D158, #32AE60);
+      color: #fff;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(48,209,88,0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(48,209,88,0); }
+    }
+    .pass-actions { display: flex; gap: 8px; }
+    .pass-action-btn {
+      padding: 7px 14px; border-radius: 10px; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .btn-record { background: linear-gradient(135deg, #C9A227, #F5D77F); color: #000; }
+    .btn-record-free { background: linear-gradient(135deg, #30D158, #32AE60); color: #fff; }
+    .btn-more { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); padding: 7px 10px; }
+
+    /* ── Empty State ── */
+    .empty {
+      text-align: center; padding: 80px 30px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .empty-icon {
+      width: 80px; height: 80px; border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px;
+    }
+    .empty h3 { font-size: 20px; font-weight: 700; }
+    .empty p { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed; bottom: 28px; right: 50%; transform: translateX(50%);
+      background: linear-gradient(135deg, #C9A227, #F5D77F);
+      color: #000; border: none; border-radius: 30px;
+      padding: 16px 28px; font-size: 17px; font-weight: 700;
+      box-shadow: 0 8px 30px rgba(201,162,39,0.5);
+      cursor: pointer; z-index: 200;
+      display: flex; align-items: center; gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      safe-area-inset-bottom: env(safe-area-inset-bottom);
+    }
+    .fab:active { transform: translateX(50%) scale(0.95); }
+
+    /* ── Modals ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 300;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.show { opacity: 1; pointer-events: all; }
+    .sheet {
+      background: #1C1C1E;
+      border-radius: 20px 20px 0 0;
+      padding: 12px 20px calc(32px + env(safe-area-inset-bottom, 0px));
+      width: 100%; max-width: 480px;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+      max-height: 88vh; overflow-y: auto;
+    }
+    .overlay.show .sheet { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 4px; background: rgba(255,255,255,0.2);
+      border-radius: 2px; margin: 0 auto 20px;
+    }
+    .sheet-title {
+      font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 24px;
+    }
+    .field-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+    .field-input {
+      width: 100%; background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      color: #fff; font-size: 17px; padding: 14px 16px;
+      outline: none; direction: rtl; margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .field-input:focus { border-color: #C9A227; }
+    .sheet-btn {
+      width: 100%; padding: 15px; border-radius: 14px; border: none;
+      font-size: 17px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    }
+    .sheet-btn-primary {
+      background: linear-gradient(135deg, #C9A227, #F5D77F);
+      color: #000;
+    }
+    .sheet-btn-green {
+      background: linear-gradient(135deg, #30D158, #32AE60);
+      color: #fff;
+    }
+    .sheet-btn-cancel { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+
+    /* Confirm card inside sheet */
+    .confirm-icon { font-size: 64px; text-align: center; margin-bottom: 12px; display: block; }
+    .confirm-title { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .confirm-desc { font-size: 15px; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.6; margin-bottom: 24px; }
+
+    /* Mini pass preview inside confirm */
+    .mini-pass {
+      background: linear-gradient(135deg, #1A1A2E, #0F3460);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;
+    }
+    .mini-pass-row { display: flex; justify-content: space-between; align-items: center; }
+    .mini-pass-name { font-weight: 700; font-size: 15px; }
+    .mini-pass-count { font-size: 13px; color: #C9A227; font-weight: 700; }
+    .mini-stamps { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+    .mini-stamp { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); }
+    .mini-stamp.on { background: linear-gradient(135deg, #C9A227, #F5D77F); border-color: transparent; }
+    .mini-stamp.next { border-color: #C9A227; border-style: dashed; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stat-card {
+      background: #1C1C1E; border-radius: 16px; padding: 18px;
+      text-align: center;
+    }
+    .stat-card .n { font-size: 34px; font-weight: 800; color: #C9A227; }
+    .stat-card .l { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+    .stat-card.green .n { color: #30D158; }
+    .stat-card.blue .n { color: #0A84FF; }
+    .stat-card.purple .n { color: #BF5AF2; }
+
+    /* History item */
+    .tx-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: #1C1C1E;
+      border-radius: 12px; margin-bottom: 8px;
+    }
+    .tx-icon { font-size: 22px; flex-shrink: 0; }
+    .tx-info { flex: 1; }
+    .tx-title { font-size: 15px; font-weight: 600; }
+    .tx-date { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .tx-tag {
+      font-size: 11px; font-weight: 700; padding: 3px 9px;
+      border-radius: 20px; background: rgba(201,162,39,0.15); color: #C9A227;
+    }
+    .tx-tag.free { background: rgba(48,209,88,0.15); color: #30D158; }
+
+    /* Ready banner */
+    .ready-section-header {
+      font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px; margin: 4px 0 8px; padding: 0 2px;
+    }
+    .ready-row {
+      background: linear-gradient(135deg, rgba(201,162,39,0.12), rgba(245,215,127,0.08));
+      border: 1px solid rgba(201,162,39,0.3);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .ready-row .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, #C9A227, #F5D77F);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #000; flex-shrink: 0;
+    }
+    .ready-row .info { flex: 1; }
+    .ready-row .info strong { font-size: 15px; display: block; }
+    .ready-row .info span { font-size: 12px; color: rgba(255,255,255,0.45); }
+    .ready-row .star { font-size: 22px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%) translateY(30px);
+      background: rgba(30,30,30,0.95);
+      backdrop-filter: blur(20px);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      color: #fff; padding: 12px 20px; border-radius: 20px;
+      font-size: 14px; font-weight: 600; z-index: 500;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Install hint */
+    .install-hint {
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; gap: 12px; align-items: center;
+      margin-bottom: 8px; cursor: pointer;
+    }
+    .install-hint .ic { font-size: 26px; }
+    .install-hint .txt h4 { font-size: 14px; font-weight: 600; }
+    .install-hint .txt p { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .install-hint .close { color: rgba(255,255,255,0.3); font-size: 18px; margin-right: auto; }
+
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .cards-list { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="safe-top"></div>
+
+<!-- Navbar -->
+<div class="navbar">
+  <button class="navbar-btn left" id="btn-stats-toggle">إحصائيات</button>
+  <div class="navbar-title">💳 بطاقة الولاء</div>
+  <button class="navbar-btn right" id="fab-trigger">+ إضافة</button>
+</div>
+
+<!-- Search -->
+<div class="search-wrap">
+  <div class="search-inner">
+    <span class="search-icon">🔍</span>
+    <input id="search-input" type="search" placeholder="ابحث عن عميل...">
+  </div>
+</div>
+
+<!-- Segment -->
+<div class="segment-wrap">
+  <div class="segment">
+    <button class="seg-btn active" data-tab="all">الكل</button>
+    <button class="seg-btn" data-tab="ready">جاهزون 🎁</button>
+    <button class="seg-btn" data-tab="history">السجل</button>
+  </div>
+</div>
+
+<!-- Cards -->
+<div class="cards-list" id="cards-list"></div>
+
+<!-- FAB -->
+<button class="fab" id="fab-add">
+  <span>＋</span> عميل جديد
+</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══ Sheet: Add Customer ═══ -->
+<div class="overlay" id="sheet-add">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">إضافة عميل جديد</div>
+    <div class="field-label">الاسم الكامل *</div>
+    <input class="field-input" id="inp-name" type="text" placeholder="مثال: أحمد محمد علي" maxlength="50">
+    <div class="field-label">رقم الجوال</div>
+    <input class="field-input" id="inp-phone" type="tel" placeholder="05XXXXXXXX" maxlength="15" style="direction:ltr;text-align:right">
+    <button class="sheet-btn sheet-btn-primary" id="btn-save">💾 حفظ البطاقة</button>
+    <button class="sheet-btn sheet-btn-cancel" id="btn-cancel-add">إلغاء</button>
+  </div>
+</div>
+
+<!-- ═══ Sheet: Confirm Stamp ═══ -->
+<div class="overlay" id="sheet-stamp">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <span class="confirm-icon">🗂️</span>
+    <div class="confirm-title" id="stamp-title">تسجيل معاملة</div>
+    <!-- Mini pass preview -->
+    <div class="mini-pass" id="stamp-mini-pass"></div>
+    <div class="confirm-desc" id="stamp-desc"></div>
+    <button class="sheet-btn sheet-btn-primary" id="btn-do-stamp">✅ تسجيل المعاملة</button>
+    <button class="sheet-btn sheet-btn-cancel" id="btn-cancel-stamp">إلغاء</button>
+  </div>
+</div>
+
+<!-- ═══ Sheet: Confirm Free ═══ -->
+<div class="overlay" id="sheet-free">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <span class="confirm-icon">🎉</span>
+    <div class="confirm-title" style="color:#30D158">معاملة مجانية!</div>
+    <div class="confirm-desc" id="free-desc"></div>
+    <button class="sheet-btn sheet-btn-green" id="btn-do-free">🎁 تأكيد المجانية</button>
+    <button class="sheet-btn sheet-btn-cancel" id="btn-cancel-free">إلغاء</button>
+  </div>
+</div>
+
+<!-- ═══ Sheet: History ═══ -->
+<div class="overlay" id="sheet-history">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="history-title">السجل</div>
+    <div id="history-body"></div>
+    <button class="sheet-btn sheet-btn-cancel" id="btn-close-history" style="margin-top:8px">إغلاق</button>
+  </div>
+</div>
+
+<!-- ═══ Sheet: Stats ═══ -->
+<div class="overlay" id="sheet-stats">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 الإحصائيات</div>
+    <div id="stats-body"></div>
+    <button class="sheet-btn sheet-btn-cancel" id="btn-close-stats" style="margin-top:8px">إغلاق</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════
+const GOAL = 10;
+let db = JSON.parse(localStorage.getItem('ldb2') || '{"customers":[],"transactions":[]}');
+let pending = null;
+let tab = 'all';
+let q = '';
+
+function save() { localStorage.setItem('ldb2', JSON.stringify(db)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function now() { return new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function cust(id) { return db.customers.find(c=>c.id===id); }
+function txs(id) { return db.transactions.filter(t=>t.cid===id); }
+function initial(name) { return name.trim().charAt(0); }
+
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function render() {
+  const list = document.getElementById('cards-list');
+  let customers = db.customers.filter(c => {
+    if (!q) return true;
+    return c.name.toLowerCase().includes(q.toLowerCase()) || (c.phone||'').includes(q);
+  });
+
+  if (tab === 'ready') { customers = customers.filter(c => c.stamps >= GOAL); }
+  if (tab === 'history') { renderHistoryTab(list); return; }
+
+  if (customers.length === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">${tab==='ready'?'🎁':'💳'}</div>
+      <h3>${q ? 'لا نتائج' : tab==='ready' ? 'لا أحد جاهز بعد' : 'لا يوجد عملاء'}</h3>
+      <p>${q ? 'جرب بحثاً مختلفاً' : tab==='ready' ? 'سيظهر هنا من أتم 10 معاملات' : 'اضغط «عميل جديد» للبدء'}</p>
+    </div>`;
+    return;
+  }
+
+  const ready = customers.filter(c => c.stamps >= GOAL);
+  let html = '';
+
+  if (tab === 'ready' && ready.length > 0) {
+    html += `<div class="ready-section-header">جاهزون للمعاملة المجانية — ${ready.length} عملاء</div>`;
+    ready.forEach(c => {
+      html += `<div class="ready-row" onclick="doAction('${c.id}')">
+        <div class="avatar">${initial(c.name)}</div>
+        <div class="info"><strong>${c.name}</strong><span>${c.phone||'اضغط لتسجيل المجانية'}</span></div>
+        <div class="star">🎁</div>
+      </div>`;
+    });
+    return list.innerHTML = html, void 0;
+  }
+
+  customers.forEach(c => {
+    const s = c.stamps;
+    const isReady = s >= GOAL;
+    const pct = Math.min((s/GOAL)*100, 100);
+    let dotsHtml = '';
+    for (let i=0; i<GOAL; i++) {
+      dotsHtml += `<div class="stamp-dot${i<s?' filled':''}"></div>`;
+    }
+    html += `
+    <div class="pass-card${isReady?' ready':''}">
+      <div class="pass-header">
+        <div class="pass-logo">
+          <div class="pass-logo-icon">🏢</div>
+          <div class="pass-logo-text">
+            <div class="brand">مكتب تخليص المعاملات</div>
+            <div class="sub">برنامج الولاء</div>
+          </div>
+        </div>
+        <div class="pass-points">
+          <div class="num">${isReady?'★':s}</div>
+          <div class="lbl">${isReady?'مجانية':'/ '+GOAL}</div>
+        </div>
+      </div>
+      <div class="pass-customer">
+        <div class="label">CARDHOLDER</div>
+        <div class="name">${c.name}</div>
+        ${c.phone?`<div class="phone">${c.phone}</div>`:''}
+      </div>
+      <div class="pass-stamps">
+        <div class="stamps-label">
+          <span>طوابع المعاملات</span>
+          <span class="progress-lbl">${isReady?'✅ مكتمل!':s+' من '+GOAL}</span>
+        </div>
+        <div class="stamps-grid">${dotsHtml}</div>
+        <div class="pass-progress">
+          <div class="pass-progress-fill${isReady?' complete':''}" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="pass-footer">
+        ${isReady
+          ? `<div class="pass-free-badge">🎁 معاملة مجانية</div>`
+          : `<span style="font-size:11px;color:rgba(255,255,255,0.3)">${GOAL-s} معاملة للمجانية</span>`
+        }
+        <div class="pass-actions">
+          <button class="pass-action-btn btn-more" onclick="showCustHistory('${c.id}',event)">⋯</button>
+          <button class="pass-action-btn${isReady?' btn-record-free':' btn-record'}" onclick="doAction('${c.id}',event)">
+            ${isReady?'🎁 صرف المجانية':'🗂️ تسجيل'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function renderHistoryTab(container) {
+  const last = [...db.transactions].reverse().slice(0,50);
+  if (last.length===0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><h3>لا توجد معاملات</h3><p>ستظهر هنا كل المعاملات المسجلة</p></div>`;
+    return;
+  }
+  container.innerHTML = last.map(t => {
+    const c = cust(t.cid);
+    return `<div class="tx-item">
+      <div class="tx-icon">${t.type==='free'?'🎁':'🗂️'}</div>
+      <div class="tx-info">
+        <div class="tx-title">${c?c.name:'محذوف'}</div>
+        <div class="tx-date">${t.dateStr}</div>
+      </div>
+      <div class="tx-tag${t.type==='free'?' free':''}">${t.type==='free'?'مجانية':'مدفوعة'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  ACTIONS
+// ════════════════════════════════════════
+function doAction(id, e) {
+  e && e.stopPropagation();
+  const c = cust(id);
+  if (!c) return;
+  pending = id;
+  if (c.stamps >= GOAL) {
+    document.getElementById('free-desc').textContent =
+      `العميل "${c.name}" أتمّ ${GOAL} معاملات ويستحق معاملة مجانية بدون رسوم مركز الطباعة.`;
+    show('sheet-free');
+  } else {
+    const next = c.stamps + 1;
+    document.getElementById('stamp-title').textContent = `تسجيل معاملة — ${c.name}`;
+    // Mini pass
+    let miniDots = '';
+    for(let i=0;i<GOAL;i++){
+      if(i<c.stamps) miniDots+=`<div class="mini-stamp on"></div>`;
+      else if(i===c.stamps) miniDots+=`<div class="mini-stamp next"></div>`;
+      else miniDots+=`<div class="mini-stamp"></div>`;
+    }
+    document.getElementById('stamp-mini-pass').innerHTML = `
+      <div class="mini-pass-row">
+        <span class="mini-pass-name">${c.name}</span>
+        <span class="mini-pass-count">${next}/${GOAL}</span>
+      </div>
+      <div class="mini-stamps">${miniDots}</div>`;
+    document.getElementById('stamp-desc').textContent =
+      next===GOAL ? `🎉 هذه ستكون المعاملة رقم ${next} — سيستحق المجانية بعدها مباشرة!`
+                  : `سيصبح لديه ${next} من ${GOAL} معاملة. ${GOAL-next} معاملات متبقية للمجانية.`;
+    show('sheet-stamp');
+  }
+}
+
+function recordTx(id, type) {
+  const c = cust(id);
+  if (!c) return;
+  db.transactions.push({ id:uid(), cid:id, type, date:new Date().toISOString(), dateStr:now() });
+  if (type==='paid') {
+    c.stamps = c.stamps+1 >= GOAL ? GOAL : c.stamps+1;
+  } else {
+    c.stamps = 0;
+  }
+  c.total = (c.total||0)+1;
+  save(); render();
+}
+
+function showCustHistory(id, e) {
+  e && e.stopPropagation();
+  const c = cust(id);
+  if (!c) return;
+  const list = txs(id).reverse();
+  document.getElementById('history-title').textContent = `📋 سجل ${c.name}`;
+  document.getElementById('history-body').innerHTML = list.length===0
+    ? `<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3)">لا توجد معاملات</div>`
+    : list.map((t,i)=>`<div class="tx-item">
+        <div class="tx-icon">${t.type==='free'?'🎁':'🗂️'}</div>
+        <div class="tx-info">
+          <div class="tx-title">${t.type==='free'?'معاملة مجانية':'معاملة مدفوعة'}</div>
+          <div class="tx-date">${t.dateStr}</div>
+        </div>
+        <div class="tx-tag${t.type==='free'?' free':''}">#${list.length-i}</div>
+      </div>`).join('');
+  show('sheet-history');
+}
+
+function showStats() {
+  const total = db.transactions.length;
+  const free = db.transactions.filter(t=>t.type==='free').length;
+  const paid = db.transactions.filter(t=>t.type==='paid').length;
+  const today = new Date().toDateString();
+  const todayN = db.transactions.filter(t=>new Date(t.date).toDateString()===today).length;
+  document.getElementById('stats-body').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="n">${db.customers.length}</div><div class="l">عدد العملاء</div></div>
+      <div class="stat-card blue"><div class="n">${paid}</div><div class="l">معاملات مدفوعة</div></div>
+      <div class="stat-card green"><div class="n">${free}</div><div class="l">معاملات مجانية</div></div>
+      <div class="stat-card purple"><div class="n">${todayN}</div><div class="l">معاملات اليوم</div></div>
+    </div>
+    <div style="background:#1C1C1E;border-radius:14px;padding:16px;text-align:center">
+      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px">نسبة المجانية</div>
+      <div style="font-size:28px;font-weight:800;color:#C9A227">${total?Math.round(free/total*100):0}%</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px">من إجمالي ${total} معاملة</div>
+    </div>`;
+  show('sheet-stats');
+}
+
+function delCust(id) {
+  const c = cust(id);
+  if(!c) return;
+  if(!confirm(`حذف بطاقة "${c.name}"؟ لا يمكن التراجع.`)) return;
+  db.customers = db.customers.filter(x=>x.id!==id);
+  db.transactions = db.transactions.filter(x=>x.cid!==id);
+  save(); render(); toast(`تم حذف ${c.name}`);
+}
+
+// ════════════════════════════════════════
+//  SHEETS
+// ════════════════════════════════════════
+function show(id) { document.getElementById(id).classList.add('show'); }
+function hide(id) { document.getElementById(id).classList.remove('show'); }
+
+['sheet-add','sheet-stamp','sheet-free','sheet-history','sheet-stats'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) hide(id); });
+});
+
+// Add
+const openAdd = ()=>{
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-phone').value='';
+  show('sheet-add');
+  setTimeout(()=>document.getElementById('inp-name').focus(),350);
+};
+document.getElementById('fab-add').onclick = openAdd;
+document.getElementById('fab-trigger').onclick = openAdd;
+document.getElementById('btn-cancel-add').onclick = ()=>hide('sheet-add');
+document.getElementById('btn-save').onclick = ()=>{
+  const name = document.getElementById('inp-name').value.trim();
+  if(!name){ toast('الرجاء كتابة الاسم'); return; }
+  const phone = document.getElementById('inp-phone').value.trim();
+  db.customers.unshift({ id:uid(), name, phone, stamps:0, total:0, created:new Date().toISOString() });
+  save(); hide('sheet-add'); render(); toast(`✅ تمت إضافة ${name}`);
+};
+
+// Stamp confirm
+document.getElementById('btn-do-stamp').onclick = ()=>{
+  hide('sheet-stamp');
+  if(!pending) return;
+  recordTx(pending,'paid');
+  const c = cust(pending);
+  if(c && c.stamps>=GOAL) toast('🎉 أكمل 10 معاملات! يستحق المجانية');
+  else toast('✅ تم تسجيل المعاملة');
+  pending=null;
+};
+document.getElementById('btn-cancel-stamp').onclick = ()=>{ hide('sheet-stamp'); pending=null; };
+
+// Free confirm
+document.getElementById('btn-do-free').onclick = ()=>{
+  hide('sheet-free');
+  if(!pending) return;
+  recordTx(pending,'free');
+  toast('🎁 تم صرف المعاملة المجانية!');
+  pending=null;
+};
+document.getElementById('btn-cancel-free').onclick = ()=>{ hide('sheet-free'); pending=null; };
+
+// History & stats
+document.getElementById('btn-close-history').onclick = ()=>hide('sheet-history');
+document.getElementById('btn-close-stats').onclick = ()=>hide('sheet-stats');
+document.getElementById('btn-stats-toggle').onclick = showStats;
+
+// Segment
+document.querySelectorAll('.seg-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    tab=btn.dataset.tab; render();
+  };
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input',function(){ q=this.value.trim(); render(); });
+
+// Enter keys
+document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter') document.getElementById('inp-phone').focus();});
+document.getElementById('inp-phone').addEventListener('keydown',e=>{if(e.key==='Enter') document.getElementById('btn-save').click();});
+
+// Toast
+let tt;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// SW
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+// Init
+render();
+</script>
+</body>
+</html>
